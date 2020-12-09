@@ -1,0 +1,28 @@
+{
+  "name": "services",
+  "version": "1.0.0",
+  "description": "GTD Escape Room 2021 Services",
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.11.5",
+    "nodemon": "^2.0.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sportsjay/PintuFest-Backend.git"
+  },
+  "author": "Jason Nathaniel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sportsjay/PintuFest-Backend/issues"
+  },
+  "homepage": "https://github.com/sportsjay/PintuFest-Backend#readme"
+}
