@@ -4,34 +4,36 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
-// import db
-const db = require("./models/index");
+dotenv.config();
 
 const PORT = 4000;
 
 app.use(cors());
 app.use(bodyParser.json());
 
-dotenv.config();
+const mongoose = require("mongoose");
+// mongoose.connect(
+//   `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@escape-room-db.pjjl5.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`,
+//   { useUnifiedTopology: true, useCreateIndex: true, useNewUrlParser: true }
+// );
+mongoose.connect("mongodb://localhost:27017/escape-room-db", {
+  useCreateIndex: true,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-async function initDB() {
-  try {
-    const sequelize = db.sequelize.sync();
-    await db.sequelize.authenticate();
-    console.log("Connection to DB is successful!");
-  } catch (error) {
-    console.error("Unable to connect to DB");
-    console.error(error);
-  }
-}
-
-//connect to DB
-initDB();
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", function () {
+  console.log("Connected to MongoDB!");
+});
 
 //routes
-const testRoute = require("./routes/test.route");
+const adminRouter = require("./routes/admin.route");
+const gameRouter = require("./routes/game.route");
 
-app.use("/test", testRoute);
+app.use("/admin-api", adminRouter);
+app.use("/game-api", gameRouter);
 
 app.listen(PORT, function () {
   console.log("Server is running on Port: " + PORT);
