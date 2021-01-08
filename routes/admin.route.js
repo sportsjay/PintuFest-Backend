@@ -10,26 +10,6 @@ const {
 } = require("../function/validation");
 
 let Admin = require("../models/admin.user.model");
-let Game = require("../models/admin.user.model");
-
-// Get all users //
-router.route("/").get((req, res) => {
-  Admin.find()
-    .then((user) => {
-      res.json(user);
-    })
-    .catch((err) => {
-      res.status(400).json("Error: " + err);
-    });
-});
-
-// Get admin with id //
-router.route("/:id").get(verify, (req, res) => {
-  adminId = req.params.id;
-  Admin.find({ id: adminId })
-    .then((user) => res.json(user))
-    .catch((err) => res.status(400).json("Error: " + err));
-});
 
 // Admin Login //
 router.route("/login").post(async (req, res) => {
@@ -67,7 +47,7 @@ router.route("/login").post(async (req, res) => {
 
 // Admin Logout //
 router.route("/logout").post(async (req, res) => {
-  req.header("auth-token", "");
+  req.header("auth-token", "none");
   return res.json("Logout successful!");
 });
 
@@ -109,12 +89,6 @@ router.route("/register").post(async (req, res) => {
     .save()
     .then(() => res.json("admin added!"))
     .catch((err) => res.status(400).json("Save Error: " + err));
-});
-
-// Confirm User Booking by Admin //
-router.route("/confirm").post(verify, async (req, res) => {
-  const gameId = req.body.gameId;
-  await Game.findOne({ id: gameId }).then(() => {});
 });
 
 module.exports = router;
