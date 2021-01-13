@@ -2,7 +2,10 @@ const router = require("express").Router();
 // import game model
 let Game = require("../models/game.detail.model");
 
-const verify = require("../function/verifyToken");
+// test api //
+router.route("/testing").get(async (req, res) => {
+  res.json("I am queried!");
+});
 
 // Get Game Detail //
 router.route("/").get(async (req, res) => {
@@ -58,99 +61,65 @@ router.route("/newgame").post(async (req, res) => {
 // User Book a Game //
 router.route("/book").post(async (req, res) => {
   const username = req.body.username;
-  // const numUser = req.body.numUser || 1; // if user wants to add more than 1 ticket for a timeslot
-  const email = req.body.email;
+  const usernames = req.body.usernames; // number of tickets booked by a user by mapping the same username
+  // const email = req.body.email;
   const gameId = req.body.gameId; // array of gameIds
 
   let numParticipants; // current number of participants
   let maxNumParticipants; // max number of participants
-
+  let timeslot;
   if (username === undefined || username === "") {
-    res.status(400).json("Name Required!");
-    return;
+    return res.status(400).json("Name Required!");
   }
-
-  if (email === undefined || email === "") {
-    res.status(400).json("Email Required!");
-    return;
-  }
-
-  try {
-    // loop through Escape-Room game id from booking
-    await Game.findOne({ id: gameId })
-      .then((details) => {
-        numParticipants = details.participants.length;
-        maxNumParticipants = details.maxNumberOfParticipants;
-      })
-      .catch(
-        (error) =>
-          res.status(400).json(`Error querying game ${idx + 1} detail: `) +
-          error
-      );
-    // check if slot status is fully booked
-    if (numParticipants < maxNumParticipants) {
+  // loop through Escape-Room game id from booking
+  await Game.findOne({ id: parseInt(gameId) })
+    .then((details) => {
+      numParticipants = details.participants.length;
+      maxNumParticipants = details.maxNumberOfParticipants;
+      timeslot = details.timeSlot;
+      if (usernames.length > maxNumParticipants - numParticipants) {
+        console.log(
+          `Failed to book! not enough slot to book! tried to book ${
+            usernames.length
+          }, ${maxNumParticipants - numParticipants} slots left`
+        );
+        return res
+          .status(400)
+          .json(
+            `Failed to book! not enough slot to book! tried to book ${
+              usernames.length
+            }, ${maxNumParticipants - numParticipants} slots left`
+          );
+      }
+    })
+    .catch((error) => {
+      let date = new Date();
+      console.log(`${date}: Error querying game ${idx + 1}`);
+      res.status(400).json(`Error querying game ${idx + 1} detail: ` + error);
+    });
+  // Check for more than 1 user booking
+  if (
+    usernames.length <= maxNumParticipants - numParticipants &&
+    usernames.length > 0
+  ) {
+    usernames.map(async (user, idx) => {
       await Game.findOneAndUpdate(
-        { id: id },
-        { $push: { participants: username } }
+        { id: gameId },
+        { $push: { participants: user } }
       )
         .then(() => {
-          if (idx === 2) {
-            // user can only book 3 slots, 1 for each respective game room
-            // provide response to calculate the price
-            res.json({
-              msg: `You have successfully booked the slots!`,
-            });
+          let date = new Date();
+          console.log(`${date}: ${user} has booked timeslot ${timeslot}`);
+          if (idx === usernames.length - 1) {
+            return res.json(`Thank you for booking!`);
           }
         })
         .catch((error) => {
-          res
-            .status(400)
-            .json(`Error booking slot for game ${idx + 1}: ` + error);
+          console.log("Failed to book! " + error);
+          return res.status(400).json("Failed to book! " + error);
         });
-    } else {
-      res.status(400).json(`Game ${idx + 1} slot is fully booked!`);
-    }
-  } catch {
-    (error) =>
-      res.status(400).json("Error found while checking game ID, " + error);
+    });
   }
-});
-
-// Admin Update Game Status (Start, On-Progress, Reset) //
-router.route("/update-status/:gameid").post(async (req, res) => {
-  // add auth token
-  const gameId = req.params.gameid;
-  const gameStatus = req.body.gameStatus;
-  const durationLeft = gameStatus === 1 ? req.body.duration : "none";
-
-  Game.findOneAndUpdate(
-    { id: gameId },
-    { status: gameStatus, duration: durationLeft }
-  )
-    .then((details) => {
-      switch (gameStatus) {
-        case gameStatus === 0:
-          res.json(`Game Room ${details.name}: ${details.roomNumber} Started!`);
-          return;
-        case gameStatus === 1:
-          res.json({
-            msg: `Game Room ${details.name}: ${details.roomNumber} has ${durationLeft} mins left!`,
-            duration: durationLeft,
-          });
-          return;
-        case gameStatus === 2:
-          res.json(
-            `Game Room ${details.name}: ${details.roomNumber} is Resetting!`
-          );
-          return;
-        default:
-          res.status(400).json("Failed to change status!");
-          return;
-      }
-    })
-    .catch((error) =>
-      res.status(400).json("Failed to update game room status! " + error)
-    );
 });
 
 module.exports = router;

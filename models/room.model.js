@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-let GameRoom = new Schema(
+let Room = new Schema(
   {
     room: {
-      type: Number,
+      type: Number, // room 1, 2, 3
       required: true,
     },
     status: {
@@ -12,8 +12,8 @@ let GameRoom = new Schema(
       required: true,
     },
     duration: {
-      // time keeper purpose (60 mins, 30 mins, 10 mins, 5 mins, 2 mins, 1 min)
-      type: Number,
+      // time keeper purpose (120 mins, 60 mins, 30 mins, 10 mins, 5 mins, 2 mins, 1 min)
+      type: String,
       required: true,
     },
   },
@@ -22,4 +22,4 @@ let GameRoom = new Schema(
   }
 );
 
-module.exports = mongoose.model("GameRoom", GameRoom);
+module.exports = mongoose.model("Room", Room);
